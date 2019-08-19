@@ -43,7 +43,8 @@
 
 -(NSMutableURLRequest *)urlRequest {
     //build URL
-    let urlString = [[SERVER_URL stringByAppendingString:API_VERSION] stringByAppendingString:self.path];
+    // Fork: Use proxy for REST requests
+    let urlString = [[[OneSignal server_url] stringByAppendingString:API_VERSION] stringByAppendingString:self.path];
     
     let request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlString]];
     
