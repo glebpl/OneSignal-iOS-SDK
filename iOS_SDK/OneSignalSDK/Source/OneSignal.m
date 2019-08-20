@@ -732,6 +732,9 @@ static NSString* server_url = SERVER_URL;
 + (void)useBaseUrl:(NSString *)baseUrl {
     server_url = baseUrl;
 }
++ (NSString*)server_url {
+    return server_url;
+}
 
 + (void) onesignal_Log:(ONE_S_LOG_LEVEL)logLevel message:(NSString*) message {
     onesignal_Log(logLevel, message);
