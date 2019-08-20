@@ -380,6 +380,7 @@ typedef NS_ENUM(NSUInteger, ONE_S_LOG_LEVEL) {
 + (NSString*)sdk_semantic_version;
 // Fork: Use proxy for REST requests
 + (NSString*)server_url;
++ (void)useBaseUrl:(NSString*)baseUrl;
 
 // Only use if you set kOSSettingsKeyAutoPrompt to false
 + (void)registerForPushNotifications __deprecated_msg("Please use promptForPushNotificationsWithUserResponse instead.");
