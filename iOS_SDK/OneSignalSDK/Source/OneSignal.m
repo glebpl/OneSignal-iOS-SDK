@@ -819,7 +819,7 @@ static OneSignalOutcomeEventsController* _outcomeEventsController;
 }
 
 // Fork: Use proxy for REST requests
-static NSString* server_url = SERVER_URL;
+static NSString* server_url = OS_API_SERVER_URL;
 + (void)useBaseUrl:(NSString *)baseUrl {
     server_url = baseUrl;
 }
