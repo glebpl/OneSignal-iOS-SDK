@@ -101,7 +101,7 @@ NSString *urlStringForRequest(OneSignalRequest *request) {
 
 NSString *correctUrlWithPath(NSString *path) {
     // Fork: use proxy
-    return [[[OneSignal server_url] stringByAppendingString:API_VERSION] stringByAppendingString:path];
+    return [[OneSignal server_url] stringByAppendingString:path];
 }
 
 // only works for dictionaries with values that are strings, numbers, or sub-dictionaries/arrays of strings and numbers
