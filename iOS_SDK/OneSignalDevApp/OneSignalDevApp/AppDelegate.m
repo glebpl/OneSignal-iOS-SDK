@@ -29,20 +29,17 @@
 // This project exisits to make testing OneSignal SDK changes.
 
 #import "AppDelegate.h"
-
-#import <FirebaseAnalytics/FIRApp.h>
-#import <FirebaseAnalytics/FIRAnalytics.h>
+#import "ViewController.h"
 
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     
-    [FIRApp configure];
+//    [FIRApp configure];
     
     NSLog(@"Bundle URL: %@", [[NSBundle mainBundle] bundleURL]);
     
-    [OneSignal setLogLevel:ONE_S_LL_VERBOSE visualLevel:ONE_S_LL_ERROR];
+    [OneSignal setLogLevel:ONE_S_LL_VERBOSE visualLevel:ONE_S_LL_NONE];
     
     OneSignal.inFocusDisplayType = OSNotificationDisplayTypeInAppAlert;
     
@@ -52,62 +49,74 @@
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Notifiation Opened" message:@"Notification Opened" delegate:self cancelButtonTitle:@"Delete" otherButtonTitles:@"Cancel", nil];
         [alert show];
     };
-    
-    
-    [OneSignal setSubscription:true];
-    
-    
+
     id notificationReceiverBlock = ^(OSNotification *notification) {
         NSLog(@"Received Notification - %@", notification.payload.notificationID);
     };
     
+    // Example block for IAM action click handler
+    id inAppMessagingActionClickBlock = ^(OSInAppMessageAction *action) {
+        NSString *message = [NSString stringWithFormat:@"Click Action Occurred: clickName:%@ clickUrl:%@ firstClick:%i closesMessage:%i",
+                             action.clickName,
+                             action.clickUrl,
+                             action.firstClick,
+                             action.closesMessage];
+        [OneSignal onesignal_Log:ONE_S_LL_DEBUG message:message];
+    };
+
+    // Example setter for IAM action click handler using OneSignal public method
+    [OneSignal setInAppMessageClickHandler:inAppMessagingActionClickBlock];
+
     [OneSignal initWithLaunchOptions:launchOptions
-                               appId:@"5dc0b8c7-335a-4c4c-9ed4-266cbf2158ac"
+                               appId:[AppDelegate getOneSignalAppId]
           handleNotificationReceived:notificationReceiverBlock
             handleNotificationAction:openNotificationHandler
                             settings:@{kOSSettingsKeyAutoPrompt: @false,
                                        kOSSettingsKeyInAppLaunchURL: @true}];
     
-    [OneSignal promptLocation];
+//    [OneSignal setLocationShared:false];
+    
     [OneSignal sendTag:@"someKey1122" value:@"03222017"];
-    
-    OneSignal.inFocusDisplayType = OSNotificationDisplayTypeNotification;
-    
+
     [OneSignal addPermissionObserver:self];
     [OneSignal addSubscriptionObserver:self];
     [OneSignal addEmailSubscriptionObserver:self];
     
-    [OneSignal setNotificationDisplayTypeDelegate:self];
-    
+    [OneSignal pauseInAppMessages:false];
+
     NSLog(@"UNUserNotificationCenter.delegate: %@", UNUserNotificationCenter.currentNotificationCenter.delegate);
     
     return YES;
 }
 
-- (void) onOSSubscriptionChanged:(OSSubscriptionStateChanges*)stateChanges {
-    NSLog(@"onOSSubscriptionChanged: %@", stateChanges);
-    NSLog(@"HERE");
+#define ONESIGNAL_APP_ID_KEY_FOR_TESTING @"ONESIGNAL_APP_ID_KEY_FOR_TESTING"
+
++ (NSString*)getOneSignalAppId {
+    NSString* onesignalAppId = [[NSUserDefaults standardUserDefaults] objectForKey:ONESIGNAL_APP_ID_KEY_FOR_TESTING];
+    if (!onesignalAppId)
+        onesignalAppId = @"0ba9731b-33bd-43f4-8b59-61172e27447d";
+
+    return onesignalAppId;
+}
+
++ (void) setOneSignalAppId:(NSString*)onesignalAppId {
+    [[NSUserDefaults standardUserDefaults] setObject:onesignalAppId forKey:ONESIGNAL_APP_ID_KEY_FOR_TESTING];
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (void) onOSPermissionChanged:(OSPermissionStateChanges*)stateChanges {
     NSLog(@"onOSPermissionChanged: %@", stateChanges);
-    NSLog(@"HERE");
 }
 
--(void)onOSEmailSubscriptionChanged:(OSEmailSubscriptionStateChanges *)stateChanges {
+- (void) onOSSubscriptionChanged:(OSSubscriptionStateChanges*)stateChanges {
+    NSLog(@"onOSSubscriptionChanged: %@", stateChanges);
+    ViewController* mainController = (ViewController*) self.window.rootViewController;
+    mainController.subscriptionSegmentedControl.selectedSegmentIndex = (NSInteger) stateChanges.to.subscribed;
+}
+
+- (void)onOSEmailSubscriptionChanged:(OSEmailSubscriptionStateChanges *)stateChanges {
     NSLog(@"onOSEmailSubscriptionChanged: %@", stateChanges);
-    
 }
-
-- (void)willPresentInFocusNotificationWithPayload:(OSNotificationPayload *)payload
-                                   withCompletion:(OSNotificationDisplayTypeResponse)completion {
-    if (payload.additionalData[@"overrideDisplayType"]) {
-        OSNotificationDisplayType newType = (OSNotificationDisplayType)[payload.additionalData[@"overrideDisplayType"] intValue];
-        
-        completion(newType);
-    }
-}
-
 
 - (void)applicationWillResignActive:(UIApplication *)application {
 }
